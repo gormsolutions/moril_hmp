@@ -4,29 +4,20 @@ app_publisher = "paul"
 app_description = "Hospital Management"
 app_email = "mututapaul01@gmail.com"
 app_license = "mit"
-
-# Apps
-# ------------------
-
+# from hmh_custom_app.custom_api.later_payments.view_logs import grant_view_permission_to_all_users
 # required_apps = []
-
-# Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "hmh_custom_app",
-# 		"logo": "/assets/hmh_custom_app/logo.png",
-# 		"title": "Hmh Custom App",
-# 		"route": "/hmh_custom_app",
-# 		"has_permission": "hmh_custom_app.api.permission.has_app_permission"
-# 	}
-# ]
 
 # Includes in <head>
 # ------------------
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/hmh_custom_app/css/hmh_custom_app.css"
-# app_include_js = "/assets/hmh_custom_app/js/hmh_custom_app.js"
+app_include_js = "/assets/hmh_custom_app/js/custom_js/material_request.js"
+app_include_js = "/assets/hmh_custom_app/js/custom_js/patient_encounter.js"
+app_include_js = "/assets/hmh_custom_app/js/custom_js/patient.js"
+app_include_js = "/assets/hmh_custom_app/js/custom_js/vitals.js"
+
+
 
 # include js, css files in header of web template
 # web_include_css = "/assets/hmh_custom_app/css/hmh_custom_app.css"
@@ -43,7 +34,11 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+    # "doctype" : "public/js/doctype.js"
+    "Patient Encounter": "/public/js/custom_js/print_format.js",
+    
+    }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -133,17 +128,83 @@ app_license = "mit"
 # 	"ToDo": "custom_app.overrides.CustomToDo"
 # }
 
+# Override the Notification Log class
+override_doctype_class = {
+    "Notification Log": "hmh_custom_app.custom_api.later_payments.view_logs.CustomNotificationLog"
+}
+
+
 # Document Events
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "Patient": {
+        "on_update": [
+            "hmh_custom_app.custom_api.patient.create_vital_signs_for_patient",
+            # "hmh_custom_app.custom_api.patient.validate_patient"
+        ],
+        # "validate": "hmh_custom_app.custom_api.patient.validate_patient"
+    },
+    
+    "Pharmacy": {
+        "on_submit": [
+            "hmh_custom_app.pharmacy_jouney.approved_invoice.on_submit",
+            "hmh_custom_app.pharmacy_jouney.approved_invoice.create_nurse_doc",
+            # "hmh_custom_app.custom_api.patient.validate_patient"
+        ],
+        # "validate": "hmh_custom_app.custom_api.patient.validate_patient"
+    },
+    
+    "Nurses Document": {
+        "on_update": [
+           "hmh_custom_app.pharmacy_jouney.approved_invoice.create_pharmacy_doc",
+            # "hmh_custom_app.custom_api.patient.validate_patient"
+        ],
+        # "validate": "hmh_custom_app.custom_api.patient.validate_patient"
+    },
+
+
+    #  "Notification Requests": {
+    #     "after_insert": grant_view_permission_to_all_users
+    # },
+    
+    "Patient Encounter": {
+        "on_update": [
+            # Lab prescription
+            "hmh_custom_app.custom_api.invoice_lab_tests.on_submit",
+            "hmh_custom_app.custom_api.encounter_insurance.update_lab_tests_payment_status",
+            # Drug prescription
+            "hmh_custom_app.doctor_jouney_prescription.invoice_drug_prescription.on_submit",
+            # procedures
+            "hmh_custom_app.custom_api.procedures.invoice_procedures.on_submit",
+            "hmh_custom_app.custom_api.procedures.encounter_insurance.update_procedure_payment_status",
+            
+            # Radiology
+            "hmh_custom_app.custom_api.radiology.invoice_radiology.on_submit",
+            "hmh_custom_app.custom_api.radiology.encounter_insurance.update_radiology_payment_status",
+        ],
+        # "validate": "hmh_custom_app.custom_api.patient.validate_patient"
+    },
+
+    "Patient Payment Management": {
+        "on_submit": [
+            "hmh_custom_app.custom_api.patient.create_vital_signs_for_patient_frompayments",
+            "hmh_custom_app.custom_api.self_request.request.create_radiology",
+            # apps/hmh_custom_app/hmh_custom_app/custom_api/self_request/request.py
+        ]
+    },
+       "Inpatient Record": {
+        "on_update": [
+            "hmh_custom_app.custom_api.inpatient_discharge.inpatient_disacharge.create_pharmacy_doc",
+        ]
+    },
+    
+    "Sales Invoice": {
+        "on_update": "hmh_custom_app.custom_api.update_customer_reg.on_submit_sales_invoice"
+    }       
+
+}
 
 # Scheduled Tasks
 # ---------------
@@ -227,6 +288,22 @@ app_license = "mit"
 # 		"doctype": "{doctype_4}"
 # 	}
 # ]
+
+fixtures = [
+    {
+        "doctype": "Custom Field",
+        "filters": [
+            ["module", "=", "HMH CUSTOM APP"]
+        ]
+    },
+    {
+        "doctype": "Client Script",
+        "filters": [
+            ["module", "=", "HMH CUSTOM APP"]
+        ]
+    },
+]
+
 
 # Authentication and authorization
 # --------------------------------
